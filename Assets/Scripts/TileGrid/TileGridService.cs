@@ -105,5 +105,32 @@ namespace TacticsGame.TileGrid
 
             return tile.IsBlocked;
         }
+
+        /// <summary>
+        /// This function checks the runtime occupied state of a tile & return its value.
+        /// </summary>
+        public bool IsOccupied(Vector2Int position)
+        {
+            Tile tile = GetTile(position);
+            if (tile == null)
+                return true;
+
+            return tile.IsOccupied;
+        }
+
+        /// <summary>
+        /// This function determines whether a tile can currently be traversed.
+        /// </summary>
+        public bool IsWalkable(Vector2Int position)
+        {
+            Tile tile = GetTile(position);
+
+            if (tile == null)
+            {
+                return false;
+            }
+
+            return !tile.IsBlocked && !tile.IsOccupied;
+        }
     }
 }

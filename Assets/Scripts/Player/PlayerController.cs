@@ -55,6 +55,13 @@ namespace TacticsGame.Player
 
             _isMoving = false;
 
+            Tile currentTile = _tileGridServiceObj.GetTile(_gridPosition);
+
+            if (currentTile != null)
+            {
+                currentTile.SetOccupied(true);
+            }
+
             SubscribeToEvents();
             DisableInput();
         }
@@ -128,6 +135,10 @@ namespace TacticsGame.Player
             if (selectedTile.IsBlocked)
                 return;
 
+            // Another occupied Tile cannot be selected as a destination.
+            if (selectedTile.IsOccupied)
+                return;
+
             MoveToTile(selectedTile.GridPosition);
         }
 
@@ -176,6 +187,20 @@ namespace TacticsGame.Player
                 targetWorldPosition.y = transform.position.y;
 
                 yield return MoveToPosition(targetWorldPosition);
+
+                Tile previousTile = _tileGridServiceObj.GetTile(_gridPosition);
+
+                Tile newTile = _tileGridServiceObj.GetTile(targetPosition);
+
+                if (previousTile != null)
+                {
+                    previousTile.SetOccupied(false);
+                }
+
+                if (newTile != null)
+                {
+                    newTile.SetOccupied(true);
+                }
 
                 _gridPosition = targetPosition;
             }

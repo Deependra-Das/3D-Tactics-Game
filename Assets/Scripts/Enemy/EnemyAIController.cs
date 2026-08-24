@@ -27,10 +27,20 @@ namespace TacticsGame.Enemy
             _pathfindingServiceObj = pathfindingService;
             _eventBusServiceObj = eventBusService;
             _gridPosition = startPosition;
+            _isMoving = false;
+
+            Tile currentTile = _tileGridServiceObj.GetTile(_gridPosition);
+
+            if (currentTile != null)
+            {
+                currentTile.SetOccupied(true);
+            }
         }
 
         public void ExecuteTurn()
         {
+            if (_isMoving) return; 
+
             PlayerController player = GameplayManager.Instance.Player;
 
             if (player == null)
@@ -146,6 +156,20 @@ namespace TacticsGame.Enemy
                 targetWorldPosition.y = transform.position.y;
 
                 yield return MoveToPosition(targetWorldPosition);
+
+                Tile previousTile = _tileGridServiceObj.GetTile(_gridPosition);
+
+                Tile newTile = _tileGridServiceObj.GetTile(targetPosition);
+
+                if (previousTile != null)
+                {
+                    previousTile.SetOccupied(false);
+                }
+
+                if (newTile != null)
+                {
+                    newTile.SetOccupied(true);
+                }
 
                 _gridPosition = targetPosition;
             }
