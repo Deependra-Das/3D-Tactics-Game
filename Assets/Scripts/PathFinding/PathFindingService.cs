@@ -34,7 +34,7 @@ namespace TacticsGame.PathFinding
                 return null;
             }
 
-            if (_tileGridService.IsBlocked(targetPosition))
+            if (!_tileGridService.IsWalkable(targetPosition))
             {
                 return null;
             }
@@ -78,8 +78,9 @@ namespace TacticsGame.PathFinding
                         continue;
                     }
 
-                    // Ignore tiles containing obstacles.
-                    if (_tileGridService.IsBlocked(neighbourPosition))
+                    // The target cannot be reached if it is blocked
+                    // by an obstacle or occupied by another unit.
+                    if (!_tileGridService.IsWalkable(neighbourPosition))
                     {
                         continue;
                     }
