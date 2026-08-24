@@ -3,6 +3,7 @@ using TacticsGame.Event;
 using TacticsGame.TileGrid;
 using TacticsGame.Obstacle;
 using TacticsGame.Gameplay;
+using TacticsGame.PathFinding;
 
 namespace TacticsGame.Main
 {
@@ -14,6 +15,7 @@ namespace TacticsGame.Main
         public ServiceLocator Services { get; private set; }
         private EventBusService _eventBusService;
         private TileGridService _tileGridService;
+        private PathfindingService _pathfindingService;
 
         private void Awake()
         {
@@ -40,12 +42,14 @@ namespace TacticsGame.Main
             Services = new ServiceLocator();
             _eventBusService = new EventBusService();
             _tileGridService = new TileGridService(_tileGrid_SO);
+            _pathfindingService = new PathfindingService(_tileGridService);
         }
 
         private void RegisterServices()
         {
             Services.Register(_eventBusService);
             Services.Register(_tileGridService);
+            Services.Register(_pathfindingService);
         }
     }
 }
