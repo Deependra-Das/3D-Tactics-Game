@@ -34,11 +34,23 @@ namespace TacticsGame.Gameplay
             DontDestroyOnLoad(gameObject);
         }
 
+        private void SubscribeToEvents()
+        {
+            _eventBusServiceObj.Subscribe<PlayerMovementCompletedEvent>(OnPlayerMovementCompleted);
+        }
+
+        private void UnsubscribeToEvents()
+        {
+            _eventBusServiceObj.Unsubscribe<PlayerMovementCompletedEvent>(OnPlayerMovementCompleted);
+        }
+
         public void Initialize(TileGridService tileGridService, PathfindingService pathfindingService, EventBusService eventBusService)
         {
             _tileGridServiceObj = tileGridService;
             _pathfindingServiceObj = pathfindingService;
             _eventBusServiceObj = eventBusService;
+
+            SubscribeToEvents();
             _tileGridServiceObj.GenerateTileGrid();
             ObstacleManager.Instance.GenerateObstacles();
             SpawnPlayer();
@@ -71,7 +83,33 @@ namespace TacticsGame.Gameplay
         private void ChangeTurn(GameplayTurn newTurn)
         {
             _currentTurn = newTurn;
+            RaiseGameplayTurnChangedEventEvent(_currentTurn);
+        }
+
+        private void OnPlayerMovementCompleted(PlayerMovementCompletedEvent eventData)
+        {
+            if (_currentTurn != GameplayTurn.Player)
+                return;
+
+            ChangeTurn(GameplayTurn.Enemy);
+        }
+
+        private void RaiseGameplayTurnChangedEventEvent(GameplayTurn currentTurn)
+        {
             _eventBusServiceObj.Publish(new GameplayTurnChangedEvent(_currentTurn));
+        }
+
+        private void OnDestroy()
+        {
+            if (_eventBusServiceObj != null)
+            {
+                UnsubscribeToEvents();
+            }
+
+            if (Instance == this)
+            {
+                Instance = null;
+            }
         }
     }
 }
