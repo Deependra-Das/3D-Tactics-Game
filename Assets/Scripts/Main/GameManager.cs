@@ -4,6 +4,7 @@ using TacticsGame.TileGrid;
 using TacticsGame.Obstacle;
 using TacticsGame.Gameplay;
 using TacticsGame.PathFinding;
+using TacticsGame.UI;
 
 namespace TacticsGame.Main
 {
@@ -33,6 +34,7 @@ namespace TacticsGame.Main
         {
             InitializeServices();
             RegisterServices();
+            UIManager.Instance.Initialize(_eventBusService);
             ObstacleManager.Instance.Initialize(_tileGridService);
             GameplayManager.Instance.Initialize(_tileGridService, _pathfindingService, _eventBusService);
         }
