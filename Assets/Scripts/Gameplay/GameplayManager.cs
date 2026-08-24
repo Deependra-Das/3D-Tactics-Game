@@ -25,6 +25,8 @@ namespace TacticsGame.Gameplay
         private PathfindingService _pathfindingServiceObj;
         private PlayerController _player;
 
+        public PlayerController Player => _player;
+
         private GameplayTurn _currentTurn = GameplayTurn.None;
 
         // Stores references to all spawned Enemies.
@@ -33,6 +35,7 @@ namespace TacticsGame.Gameplay
         // Number of Enemies that have completed
         // their movement during the current Enemy turn.
         private int _movementCompletedEnemyCount;
+        private int _currentEnemyTurnIndex;
 
         private void Awake()
         {
@@ -49,11 +52,13 @@ namespace TacticsGame.Gameplay
         private void SubscribeToEvents()
         {
             _eventBusServiceObj.Subscribe<PlayerMovementCompletedEvent>(OnPlayerMovementCompleted);
+            _eventBusServiceObj.Subscribe<EnemyMovementCompletedEvent>(OnEnemyMovementCompleted);
         }
 
         private void UnsubscribeToEvents()
         {
             _eventBusServiceObj.Unsubscribe<PlayerMovementCompletedEvent>(OnPlayerMovementCompleted);
+            _eventBusServiceObj.Unsubscribe<EnemyMovementCompletedEvent>(OnEnemyMovementCompleted);
         }
 
         public void Initialize(TileGridService tileGridService, PathfindingService pathfindingService, EventBusService eventBusService)
@@ -180,7 +185,56 @@ namespace TacticsGame.Gameplay
             if (_currentTurn != GameplayTurn.Player)
                 return;
 
+            _currentEnemyTurnIndex = 0;
+
+            if (_spawnedEnemiesList.Count == 0)
+            {
+                ChangeTurn(GameplayTurn.Player);
+                return;
+            }
+
             ChangeTurn(GameplayTurn.Enemy);
+            ExecuteNextEnemyTurn();
+        }
+
+
+        private void ExecuteNextEnemyTurn()
+        {
+            if (_currentEnemyTurnIndex >= _spawnedEnemiesList.Count)
+            {
+                // Every Enemy has completed its turn.
+                ChangeTurn(GameplayTurn.Player);
+                return;
+            }
+
+            EnemyAIController enemy = _spawnedEnemiesList[_currentEnemyTurnIndex];
+
+            if (enemy == null)
+            {
+                // Skip a missing or destroyed Enemy.
+                _currentEnemyTurnIndex++;
+
+                ExecuteNextEnemyTurn();
+                return;
+            }
+
+            // Give only this Enemy permission to execute.
+            enemy.ExecuteTurn();
+        }
+
+        /// <summary>
+        /// This function is called when the currently active Enemy finishes moving.
+        /// </summary>
+        private void OnEnemyMovementCompleted(EnemyMovementCompletedEvent eventData)
+        {
+            if (_currentTurn != GameplayTurn.Enemy)
+                return;
+
+            // Move to the next Enemy.
+            _currentEnemyTurnIndex++;
+
+            // Start the next Enemy.
+            ExecuteNextEnemyTurn();
         }
 
         private void RaiseGameplayTurnChangedEventEvent(GameplayTurn currentTurn)
