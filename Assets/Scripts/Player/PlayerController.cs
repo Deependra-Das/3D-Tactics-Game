@@ -182,6 +182,7 @@ namespace TacticsGame.Player
 
             // Movement is complete.
             _isMoving = false;
+            RaisePlayerMovementCompletedEvent();
         }
 
         /// <summary>
@@ -200,12 +201,10 @@ namespace TacticsGame.Player
 
         /// <summary>
         /// Reacts to a change in the active gameplay turn.
-        ///
         /// Player input is enabled only during the Player turn.
         /// </summary>
         private void HandleGameplayTurnChanged(GameplayTurnChangedEvent eventData)
         {
-            Debug.Log(eventData.CurrentTurn.ToString());
             if (eventData.CurrentTurn == GameplayTurn.Player)
             {
                 if (!_isMoving)
@@ -219,6 +218,11 @@ namespace TacticsGame.Player
             }
         }
 
+        private void RaisePlayerMovementCompletedEvent()
+        {
+            _eventBusServiceObj.Publish(new PlayerMovementCompletedEvent(_gridPosition));
+        }
+
         private void OnDestroy()
         {
             if (_eventBusServiceObj == null)
@@ -226,6 +230,5 @@ namespace TacticsGame.Player
 
             UnsubscribeToEvents();
         }
-
     }
 }
