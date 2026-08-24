@@ -19,6 +19,9 @@ namespace TacticsGame.TileGrid
 
         public float TileSize { get; private set; }
 
+        private readonly float _xOffset;
+        private readonly float _zOffset;
+
         public TileGridService(TileGrid_SO tileGrid_SO)
         {
             _tilePrefab = tileGrid_SO.tilePrefab;
@@ -26,6 +29,9 @@ namespace TacticsGame.TileGrid
             GridWidth = tileGrid_SO.gridWidth;
             GridHeight = tileGrid_SO.gridHeight;
             TileSize = tileGrid_SO.tileSize;
+
+            _xOffset = (GridWidth - 1) * TileSize / 2f;
+            _zOffset = (GridHeight - 1) * TileSize / 2f;
         }
 
         /// <summary>
@@ -57,7 +63,7 @@ namespace TacticsGame.TileGrid
         /// </summary>
         public Vector3 GetGridToWorldPosition(Vector2Int position)
         {
-            return new Vector3( position.x * TileSize, 0f, position.y * TileSize);
+            return new Vector3(position.x * TileSize - _xOffset, 0f, position.y * TileSize - _zOffset);
         }
     }
 }
