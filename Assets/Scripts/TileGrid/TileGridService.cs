@@ -58,12 +58,52 @@ namespace TacticsGame.TileGrid
         }
 
         /// <summary>
-        /// Converts a grid coordinate into a world-space position.
+        /// This function converts a grid coordinate into a world-space position.
         /// The grid is placed on the X-Z plane while Y represents height.
         /// </summary>
         public Vector3 GetGridToWorldPosition(Vector2Int position)
         {
             return new Vector3(position.x * TileSize - _xOffset, 0f, position.y * TileSize - _zOffset);
+        }
+
+        /// <summary>
+        /// This function converts a world-space position into a grid coordinate.
+        /// </summary> 
+        public Vector2Int GetWorldToGridPosition(Vector3 worldPosition)
+        {
+            return new Vector2Int( Mathf.RoundToInt((worldPosition.x + _xOffset) / TileSize),
+                Mathf.RoundToInt((worldPosition.z + _zOffset) / TileSize));
+        }
+
+        /// <summary>
+        /// This function returns the tile at the requested grid position.
+        /// </summary>
+        public Tile GetTile(Vector2Int position)
+        {
+            if (!IsInsideGrid(position))
+                return null;
+
+            return _tilesArray[position.x, position.y];
+        }
+
+        /// <summary>
+        /// This function determines whether a coordinate belongs to the tile grid.
+        /// </summary>
+        public bool IsInsideGrid(Vector2Int position)
+        {
+            return position.x >= 0 && position.x < GridWidth && position.y >= 0 && position.y < GridHeight;
+        }
+
+        /// <summary>
+        /// This function checks the runtime blocked state of a tile & return its value.
+        /// </summary>
+        public bool IsBlocked(Vector2Int position)
+        {
+            Tile tile = GetTile(position);
+            if (tile == null)
+                return true;
+
+            return tile.IsBlocked;
         }
     }
 }
