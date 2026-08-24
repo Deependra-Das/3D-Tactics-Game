@@ -22,6 +22,7 @@ namespace TacticsGame.Player
         private TileGridService _tileGridServiceObj;
 
         private InputAction m_interactAction;
+        private Camera _mainCamera;
 
         private bool _isMoving;
 
@@ -38,6 +39,7 @@ namespace TacticsGame.Player
         private void Awake()
         {
             m_interactAction = InputSystem.actions.FindAction("Interact");
+            _mainCamera = Camera.main;
         }
 
         private void Start()
@@ -59,6 +61,38 @@ namespace TacticsGame.Player
 
             if (_isMoving)
                 return;
+
+            TrySelectTile();
+        }
+
+        private void TrySelectTile()
+        {
+            if (_mainCamera == null)
+            {
+                Debug.LogWarning("No Main Camera was found");
+                return;
+            }
+
+            // Create a ray from the camera through the mouse cursor.
+            Ray mouseRay = _mainCamera.ScreenPointToRay(Mouse.current.position.ReadValue());
+
+            // Check whether the ray hits an object.
+            if (!Physics.Raycast(mouseRay, out RaycastHit hit))
+            {
+                return;
+            }
+
+            // Check whether the hit object is a Tile.
+            Tile selectedTile = hit.collider.GetComponent<Tile>();
+
+            if (selectedTile == null)
+                return;
+
+            // A blocked tile cannot be selected.
+            if (selectedTile.IsBlocked)
+                return;
+
+            Debug.Log(selectedTile.name);
         }
     }
 }
