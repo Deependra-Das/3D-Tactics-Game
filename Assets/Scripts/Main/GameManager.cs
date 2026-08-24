@@ -6,6 +6,8 @@ namespace TacticsGame.Main
     {
         public static GameManager Instance { get; private set; }
 
+        public ServiceLocator Services { get; private set; }
+
         private void Awake()
         {
             if (Instance != null && Instance != this)
@@ -20,6 +22,12 @@ namespace TacticsGame.Main
 
         private void Start()
         {
+            InitializeServices();
+        }
+
+        private void InitializeServices()
+        {
+            Services = new ServiceLocator();
         }
     }
 }
