@@ -34,7 +34,7 @@ namespace TacticsGame.Main
             InitializeServices();
             RegisterServices();
             ObstacleManager.Instance.Initialize(_tileGridService);
-            GameplayManager.Instance.Initialize(_tileGridService);
+            GameplayManager.Instance.Initialize(_tileGridService, _pathfindingService, _eventBusService);
         }
 
         private void InitializeServices()

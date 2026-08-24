@@ -1,10 +1,12 @@
-using UnityEngine;
-using UnityEngine.InputSystem;
 using System.Collections;
 using System.Collections.Generic;
+using TacticsGame.Event;
+using TacticsGame.Gameplay;
 using TacticsGame.Main;
 using TacticsGame.PathFinding;
 using TacticsGame.TileGrid;
+using UnityEngine;
+using UnityEngine.InputSystem;
 
 namespace TacticsGame.Player
 {
@@ -24,34 +26,63 @@ namespace TacticsGame.Player
 
         private TileGridService _tileGridServiceObj;
         private PathfindingService _pathfindingServiceObj;
-
+        private EventBusService _eventBusServiceObj;
         private InputAction m_interactAction;
         private Camera _mainCamera;
 
         private bool _isMoving;
 
-        private void OnEnable()
-        {
-            _inputActionObj.FindActionMap("Player").Enable();
-        }
-
-        private void OnDisable()
-        {
-            _inputActionObj.FindActionMap("Player").Disable();
-        }
-
         private void Awake()
         {
-            m_interactAction = InputSystem.actions.FindAction("Interact");
             _mainCamera = Camera.main;
+            if (_inputActionObj == null)
+            {
+                Debug.LogError("Input Action Asset has not been assigned.");
+                return;
+            }
+
+            InputActionMap playerActionMap = _inputActionObj.FindActionMap("Player", true);
+            m_interactAction =playerActionMap.FindAction("Interact", true);
         }
 
-        private void Start()
+        public void Initialize(TileGridService tileGridService, PathfindingService pathfindingService, EventBusService eventBusService, Vector2Int startPosition)
         {
-            _tileGridServiceObj  = GameManager.Instance.Services.Get<TileGridService>();
-            _pathfindingServiceObj = GameManager.Instance.Services.Get<PathfindingService>();
-            _gridPosition = _tileGridServiceObj.GetWorldToGridPosition(transform.position);
+            _tileGridServiceObj = tileGridService;
+            _pathfindingServiceObj = pathfindingService;
+            _eventBusServiceObj = eventBusService;
+
+            _gridPosition = startPosition;
+
             _isMoving = false;
+
+            SubscribeToEvents();
+            DisableInput();
+        }
+
+        private void SubscribeToEvents()
+        {
+            _eventBusServiceObj.Subscribe<GameplayTurnChangedEvent>(HandleGameplayTurnChanged);
+        }
+
+        private void UnsubscribeToEvents()
+        {
+            _eventBusServiceObj.Unsubscribe<GameplayTurnChangedEvent>(HandleGameplayTurnChanged);
+        }
+
+        private void EnableInput()
+        {
+            if (m_interactAction == null)
+                return;
+
+            m_interactAction.Enable();
+        }
+
+        private void DisableInput()
+        {
+            if (m_interactAction == null)
+                return;
+
+            m_interactAction.Disable();
         }
 
         private void Update()
@@ -151,6 +182,7 @@ namespace TacticsGame.Player
 
             // Movement is complete.
             _isMoving = false;
+            RaisePlayerMovementCompletedEvent();
         }
 
         /// <summary>
@@ -165,6 +197,38 @@ namespace TacticsGame.Player
             }
 
             transform.position = targetPosition;
+        }
+
+        /// <summary>
+        /// Reacts to a change in the active gameplay turn.
+        /// Player input is enabled only during the Player turn.
+        /// </summary>
+        private void HandleGameplayTurnChanged(GameplayTurnChangedEvent eventData)
+        {
+            if (eventData.CurrentTurn == GameplayTurn.Player)
+            {
+                if (!_isMoving)
+                {
+                    EnableInput();
+                }
+            }
+            else
+            {
+                DisableInput();
+            }
+        }
+
+        private void RaisePlayerMovementCompletedEvent()
+        {
+            _eventBusServiceObj.Publish(new PlayerMovementCompletedEvent(_gridPosition));
+        }
+
+        private void OnDestroy()
+        {
+            if (_eventBusServiceObj == null)
+                return;
+
+            UnsubscribeToEvents();
         }
     }
 }

@@ -1,7 +1,9 @@
+using UnityEngine;
+using TacticsGame.Event;
 using TacticsGame.Obstacle;
+using TacticsGame.PathFinding;
 using TacticsGame.Player;
 using TacticsGame.TileGrid;
-using UnityEngine;
 
 namespace TacticsGame.Gameplay
 {
@@ -14,7 +16,11 @@ namespace TacticsGame.Gameplay
         public static GameplayManager Instance { get; private set; }
 
         private TileGridService _tileGridServiceObj;
+        private EventBusService _eventBusServiceObj;
+        private PathfindingService _pathfindingServiceObj;
         private PlayerController _player;
+
+        private GameplayTurn _currentTurn = GameplayTurn.None;
 
         private void Awake()
         {
@@ -28,12 +34,27 @@ namespace TacticsGame.Gameplay
             DontDestroyOnLoad(gameObject);
         }
 
-        public void Initialize(TileGridService tileGridService )
+        private void SubscribeToEvents()
+        {
+            _eventBusServiceObj.Subscribe<PlayerMovementCompletedEvent>(OnPlayerMovementCompleted);
+        }
+
+        private void UnsubscribeToEvents()
+        {
+            _eventBusServiceObj.Unsubscribe<PlayerMovementCompletedEvent>(OnPlayerMovementCompleted);
+        }
+
+        public void Initialize(TileGridService tileGridService, PathfindingService pathfindingService, EventBusService eventBusService)
         {
             _tileGridServiceObj = tileGridService;
+            _pathfindingServiceObj = pathfindingService;
+            _eventBusServiceObj = eventBusService;
+
+            SubscribeToEvents();
             _tileGridServiceObj.GenerateTileGrid();
             ObstacleManager.Instance.GenerateObstacles();
             SpawnPlayer();
+            ChangeTurn(GameplayTurn.Player);
         }
 
         private void SpawnPlayer()
@@ -56,6 +77,39 @@ namespace TacticsGame.Gameplay
             worldPosition.y = 1.25f;
             _player = Instantiate(_playerPrefab, worldPosition, Quaternion.identity);
             _player.name = "Player";
+            _player.Initialize(_tileGridServiceObj, _pathfindingServiceObj, _eventBusServiceObj,_playerStartPosition);
+        }
+
+        private void ChangeTurn(GameplayTurn newTurn)
+        {
+            _currentTurn = newTurn;
+            RaiseGameplayTurnChangedEventEvent(_currentTurn);
+        }
+
+        private void OnPlayerMovementCompleted(PlayerMovementCompletedEvent eventData)
+        {
+            if (_currentTurn != GameplayTurn.Player)
+                return;
+
+            ChangeTurn(GameplayTurn.Enemy);
+        }
+
+        private void RaiseGameplayTurnChangedEventEvent(GameplayTurn currentTurn)
+        {
+            _eventBusServiceObj.Publish(new GameplayTurnChangedEvent(_currentTurn));
+        }
+
+        private void OnDestroy()
+        {
+            if (_eventBusServiceObj != null)
+            {
+                UnsubscribeToEvents();
+            }
+
+            if (Instance == this)
+            {
+                Instance = null;
+            }
         }
     }
 }
