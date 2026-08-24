@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c552054f82587ef4493b96f11d841787, type: 3}
   m_Name: TileGrid_SO
   m_EditorClassIdentifier: Assembly-CSharp::TacticsGame.TileGrid.TileGrid_SO
+  tilePrefab: {fileID: 1354652954796435246, guid: ddfcf5efc6e240e4c80bca630b1bd1bb, type: 3}
   gridWidth: 10
   gridHeight: 10
   tileSize: 1
