@@ -1,7 +1,9 @@
+using UnityEngine;
+using TacticsGame.Event;
 using TacticsGame.Obstacle;
+using TacticsGame.PathFinding;
 using TacticsGame.Player;
 using TacticsGame.TileGrid;
-using UnityEngine;
 
 namespace TacticsGame.Gameplay
 {
@@ -14,7 +16,11 @@ namespace TacticsGame.Gameplay
         public static GameplayManager Instance { get; private set; }
 
         private TileGridService _tileGridServiceObj;
+        private EventBusService _eventBusServiceObj;
+        private PathfindingService _pathfindingServiceObj;
         private PlayerController _player;
+
+        private GameplayTurn _currentTurn = GameplayTurn.None;
 
         private void Awake()
         {
@@ -28,12 +34,15 @@ namespace TacticsGame.Gameplay
             DontDestroyOnLoad(gameObject);
         }
 
-        public void Initialize(TileGridService tileGridService )
+        public void Initialize(TileGridService tileGridService, PathfindingService pathfindingService, EventBusService eventBusService)
         {
             _tileGridServiceObj = tileGridService;
+            _pathfindingServiceObj = pathfindingService;
+            _eventBusServiceObj = eventBusService;
             _tileGridServiceObj.GenerateTileGrid();
             ObstacleManager.Instance.GenerateObstacles();
             SpawnPlayer();
+            ChangeTurn(GameplayTurn.Player);
         }
 
         private void SpawnPlayer()
@@ -56,6 +65,13 @@ namespace TacticsGame.Gameplay
             worldPosition.y = 1.25f;
             _player = Instantiate(_playerPrefab, worldPosition, Quaternion.identity);
             _player.name = "Player";
+            _player.Initialize(_tileGridServiceObj, _pathfindingServiceObj, _eventBusServiceObj,_playerStartPosition);
+        }
+
+        private void ChangeTurn(GameplayTurn newTurn)
+        {
+            _currentTurn = newTurn;
+            _eventBusServiceObj.Publish(new GameplayTurnChangedEvent(_currentTurn));
         }
     }
 }
