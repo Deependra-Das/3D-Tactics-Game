@@ -150,6 +150,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GameplayManager
   _playerPrefab: {fileID: 8651646111208516941, guid: c3505700d560b9e459396b6f6191024e, type: 3}
   _playerStartPosition: {x: 3, y: 3}
+  _enemyData: {fileID: 11400000, guid: 491bd37a414d56a40bba0e667e969804, type: 2}
 --- !u!4 &261367388
 Transform:
   m_ObjectHideFlags: 0
