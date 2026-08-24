@@ -1,6 +1,7 @@
 using UnityEngine;
 using TacticsGame.Event;
 using TacticsGame.TileGrid;
+using TacticsGame.Obstacle;
 
 namespace TacticsGame.Main
 {
@@ -30,6 +31,8 @@ namespace TacticsGame.Main
             InitializeServices();
             RegisterServices();
             _tileGridService.GenerateTileGrid();
+            ObstacleManager.Instance.Initialize(_tileGridService);
+            ObstacleManager.Instance.GenerateObstacles();
         }
 
         private void InitializeServices()
